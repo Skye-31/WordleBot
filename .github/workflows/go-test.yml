@@ -1,36 +1,70 @@
-name: Go Test
+name: Go
 
-on:
-  push:
-    branches:
-      - '**'
+on: [ push, pull_request ]
 
 jobs:
-  test:
+  gobuild:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      -   uses: actions/checkout@v2
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.17
+      -   name: Set up Go
+          uses: actions/setup-go@v2
+          with:
+            go-version: 1.17
 
-      - name: Cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+      -   name: go build
+          run: go build -v ./...
 
-      - name: go build
-        run: go build ./...
+  govet:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      -   uses: actions/checkout@v2
 
-      - name: go vet
-        run: go vet -v ./...
+      -   name: Set up Go
+          uses: actions/setup-go@v2
+          with:
+            go-version: 1.17
 
-      - name: go staticcheck
-        uses: dominikh/staticcheck-action@v1.1.0
+      -   name: go vet
+          run: go vet -v ./...
+
+  gotest:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      -   uses: actions/checkout@v2
+
+      -   name: Set up Go
+          uses: actions/setup-go@v2
+          with:
+            go-version: 1.17
+
+      -   name: go test
+          env:
+            token: ${{ secrets.TOKEN }}
+          run: go test -v ./...
+
+  gostaticcheck:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      -   uses: actions/checkout@v2
+
+      -   name: Set up Go
+          uses: actions/setup-go@v2
+          with:
+            go-version: 1.17
+
+      -   name: go staticcheck
+          uses: dominikh/staticcheck-action@v1.1.0
