@@ -10,19 +10,21 @@ import (
 func Listener(_ *core.Bot, _ *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
 	return func(event *events.ApplicationCommandInteractionEvent) {
 		data := event.SlashCommandInteractionData()
-		if data.CommandName == "say" {
-			err := event.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent(*data.Options.String("message")).
-				Build(),
-			)
-			if err != nil {
-				event.Bot().Logger.Error("error on sending response: ", err)
-			}
-		} else {
-			_ = event.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent("received command").
-				Build(),
-			)
+		n := commandName(data)
+		switch n {
+		default:
+			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
 		}
 	}
+}
+
+func commandName(data core.SlashCommandInteractionData) string {
+	name := data.Name()
+	if data.SubCommandGroupName != nil {
+		name += "/" + *data.SubCommandGroupName
+	}
+	if data.SubCommandName != nil {
+		name += "/" + *data.SubCommandName
+	}
+	return name
 }
