@@ -9,77 +9,73 @@ import (
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/bot"
 	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/httpserver"
 	"github.com/DisgoOrg/disgo/info"
 	"github.com/DisgoOrg/log"
-	"github.com/DisgoOrg/snowflake"
-)
-
-var (
-	token     = os.Getenv("disgo_token")
-	publicKey = os.Getenv("disgo_public_key")
-	guildID   = snowflake.GetSnowflakeEnv("disgo_guild_id")
-
-	commands = []discord.ApplicationCommandCreate{
-		discord.SlashCommandCreate{
-			Name:              "user",
-			Description:       "Edit your settings",
-			DefaultPermission: true,
-		},
-	}
+	"github.com/Skye-31/WordleBot/commands"
+	"github.com/Skye-31/WordleBot/types"
+	"github.com/oasisprotocol/curve25519-voi/primitives/ed25519"
 )
 
 func main() {
-	log.SetLevel(log.LevelInfo)
-	log.Info("Starting Wordlebot on Disgo ", info.Version)
+	logger := log.New(log.Ltime | log.Lshortfile)
+	logger.SetLevel(log.LevelInfo)
+	logger.Info("Starting Wordlebot on Disgo ", info.Version)
 
-	disgo, err := bot.New(token,
+	config, err := types.LoadConfig(logger)
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+	logger.SetLevel(config.LogLevel)
+
+	words, err := types.LoadWordsData(logger)
+	if err != nil {
+		logger.Error("Failed to load words data: ", err)
+		return
+	}
+	_ = words
+
+	httpserver.Verify = func(publicKey httpserver.PublicKey, message, sig []byte) bool {
+		return ed25519.Verify(publicKey, message, sig)
+	}
+
+	disgo, err := bot.New(config.Token,
+		bot.WithLogger(logger),
 		bot.WithHTTPServerOpts(
 			httpserver.WithURL("/interactions"),
 			httpserver.WithPort(":4567"),
-			httpserver.WithPublicKey(publicKey),
+			httpserver.WithPublicKey(config.PublicKey),
 		),
-		bot.WithCacheOpts(core.WithCacheFlags(0), core.WithMemberCachePolicy(core.MemberCachePolicyNone), core.WithMessageCachePolicy(core.MessageCachePolicyNone)),
-		bot.WithEventListeners(&events.ListenerAdapter{
-			OnApplicationCommandInteraction: commandListener,
-		}),
+		bot.WithCacheOpts(core.WithCacheFlags(core.CacheFlagsNone), core.WithMemberCachePolicy(core.MemberCachePolicyNone), core.WithMessageCachePolicy(core.MessageCachePolicyNone)),
 	)
 	if err != nil {
-		log.Fatal("error while building disgo instance: ", err)
-		return
+		logger.Fatal("error while building disgo instance: ", err)
 	}
+	disgo.AddEventListeners(&events.ListenerAdapter{
+		OnApplicationCommandInteraction: commands.Listener(disgo, words),
+	})
 
 	defer disgo.Close(context.TODO())
 
-	if _, err = disgo.SetGuildCommands(guildID, commands); err != nil {
-		log.Fatal("error while registering commands: ", err)
+	if config.DevMode {
+		if config.DevGuildID == "" {
+			logger.Fatal("DevMode is enabled but no DevGuildID is set")
+			return
+		}
+		if _, err = disgo.SetGuildCommands(config.DevGuildID, commands.Definition); err != nil {
+			logger.Fatal("error while registering commands: ", err)
+			return
+		}
 	}
 
 	if err = disgo.StartHTTPServer(); err != nil {
-		log.Fatal("error while starting http server: ", err)
+		logger.Fatal("error while starting http server: ", err)
+		return
 	}
 
-	log.Infof("WordleBot is now running. Press CTRL-C to exit.")
+	logger.Infof("WordleBot is now running. Press CTRL-C to exit.")
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-s
-}
-
-func commandListener(event *events.ApplicationCommandInteractionEvent) {
-	data := event.SlashCommandInteractionData()
-	if data.CommandName == "say" {
-		err := event.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent(*data.Options.String("message")).
-			Build(),
-		)
-		if err != nil {
-			event.Bot().Logger.Error("error on sending response: ", err)
-		}
-	} else {
-		_ = event.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("received command").
-			Build(),
-		)
-	}
 }
