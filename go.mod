@@ -7,13 +7,21 @@ require (
 	github.com/DisgoOrg/log v1.1.3
 	github.com/DisgoOrg/snowflake v1.0.4
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20220203144524-0945b39ce060
+	github.com/uptrace/bun v1.0.25
+	github.com/uptrace/bun/dialect/pgdialect v1.0.25
+	github.com/uptrace/bun/driver/pgdriver v1.0.25
 )
 
 require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20210812194225-61421b77c44b // indirect
-	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e // indirect
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
+	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	mellium.im/sasl v0.2.1 // indirect
 )

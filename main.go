@@ -52,9 +52,6 @@ func main() {
 	if err != nil {
 		logger.Fatal("error while building disgo instance: ", err)
 	}
-	disgo.AddEventListeners(&events.ListenerAdapter{
-		OnApplicationCommandInteraction: commands.Listener(disgo, words),
-	})
 
 	defer disgo.Close(context.TODO())
 
@@ -69,6 +66,15 @@ func main() {
 		}
 	}
 
+	db, err := types.SetUpDatabase(config, logger)
+	if err != nil {
+		logger.Fatal("error while setting up database: ", err)
+		return
+	}
+
+	disgo.AddEventListeners(&events.ListenerAdapter{
+		OnApplicationCommandInteraction: commands.Listener(disgo, db, words),
+	})
 	if err = disgo.StartHTTPServer(); err != nil {
 		logger.Fatal("error while starting http server: ", err)
 		return

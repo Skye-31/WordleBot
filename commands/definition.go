@@ -22,14 +22,29 @@ var Definition = []discord.ApplicationCommandCreate{
 					{
 						Name:        "edit",
 						Description: "Edits your settings",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionBool{
+								Name:        "public",
+								Description: "Whether to your public profile should show up to other users",
+								Required:    false,
+							},
+							discord.ApplicationCommandOptionInt{
+								Name:        "default-word-size",
+								Description: "The default word size for your Wordle games",
+								Required:    false,
+								MinValue:    json.NewInt(4),
+								MaxValue:    json.NewInt(8),
+							},
+						},
 					},
 				},
 			},
 		},
 	},
 	discord.SlashCommandCreate{
-		Name:        "streak",
-		Description: "View streak information",
+		Name:              "streak",
+		Description:       "View streak information",
+		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
 				Name:        "top",
@@ -48,8 +63,9 @@ var Definition = []discord.ApplicationCommandCreate{
 		},
 	},
 	discord.SlashCommandCreate{
-		Name:        "stats",
-		Description: "View a user's stats",
+		Name:              "stats",
+		Description:       "View a user's stats",
+		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
 				Name:        "user",
@@ -64,8 +80,9 @@ var Definition = []discord.ApplicationCommandCreate{
 		},
 	},
 	discord.SlashCommandCreate{
-		Name:        "start",
-		Description: "Start a wordle game",
+		Name:              "start",
+		Description:       "Start a wordle game",
+		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionInt{
 				Name:        "letters",

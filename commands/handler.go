@@ -5,13 +5,16 @@ import (
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/Skye-31/WordleBot/types"
+	"github.com/uptrace/bun"
 )
 
-func Listener(_ *core.Bot, _ *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
+func Listener(bot *core.Bot, db *bun.DB, words *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
 	return func(event *events.ApplicationCommandInteractionEvent) {
 		data := event.SlashCommandInteractionData()
 		n := commandName(data)
 		switch n {
+		case "user/settings/edit":
+			editUserSettings(bot, db, words, event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
 		}
