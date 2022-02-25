@@ -17,7 +17,6 @@ type WordsData struct {
 }
 
 func LoadWordsData(log log.Logger) (*WordsData, error) {
-	log.Info("Loading words data...")
 	file, err := os.Open("data.json")
 	if os.IsNotExist(err) {
 		return nil, errors.New("data.json not found")

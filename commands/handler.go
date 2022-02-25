@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func Listener(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
+func Listener(_ *core.Bot, db *bun.DB, words *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
 	return func(event *events.ApplicationCommandInteractionEvent) {
 		data := event.SlashCommandInteractionData()
 		n := commandName(data)
@@ -17,6 +17,8 @@ func Listener(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(event *events.Ap
 			editUserSettings(db, event)
 		case "user/settings/view":
 			viewUserSettings(db, nil, event)
+		case "start":
+			start(db, words, event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
 		}

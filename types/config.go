@@ -10,7 +10,6 @@ import (
 )
 
 func LoadConfig(log log.Logger) (*Config, error) {
-	log.Info("Loading config...")
 	file, err := os.Open("config.json")
 	if os.IsNotExist(err) {
 		if file, err = os.Create("config.json"); err != nil {

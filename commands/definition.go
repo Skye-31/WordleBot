@@ -42,23 +42,27 @@ var Definition = []discord.ApplicationCommandCreate{
 		},
 	},
 	discord.SlashCommandCreate{
+		Name:        "leaderboard",
+		Description: "View the leaderboard",
+		Options: []discord.ApplicationCommandOption{
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "streaks",
+				Description: "View the leaderboard for streaks",
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "total",
+				Description: "View the overall leaderboard words",
+			},
+		},
+	},
+	discord.SlashCommandCreate{
 		Name:              "streak",
 		Description:       "View streak information",
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionSubCommand{
-				Name:        "top",
-				Description: "View the leaderboard of streaks",
-			},
-			discord.ApplicationCommandOptionSubCommand{
+			discord.ApplicationCommandOptionUser{
 				Name:        "user",
-				Description: "View a user's streak",
-				Options: []discord.ApplicationCommandOption{
-					discord.ApplicationCommandOptionUser{
-						Name:        "user",
-						Description: "The user to view the streak of",
-					},
-				},
+				Description: "The user to view the streak of",
 			},
 		},
 	},
@@ -67,15 +71,9 @@ var Definition = []discord.ApplicationCommandCreate{
 		Description:       "View a user's stats",
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionSubCommand{
+			discord.ApplicationCommandOptionUser{
 				Name:        "user",
-				Description: "View a user's streak",
-				Options: []discord.ApplicationCommandOption{
-					discord.ApplicationCommandOptionUser{
-						Name:        "user",
-						Description: "The user to view the streak of",
-					},
-				},
+				Description: "The user to view the streak of",
 			},
 		},
 	},
@@ -84,6 +82,11 @@ var Definition = []discord.ApplicationCommandCreate{
 		Description:       "Start a wordle game",
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
+			discord.ApplicationCommandOptionString{
+				Name:        "guess",
+				Description: "The word to start the game with",
+				Required:    true,
+			},
 			discord.ApplicationCommandOptionInt{
 				Name:        "letters",
 				Description: "The number of letters to use in the wordle. (Default: 5)",

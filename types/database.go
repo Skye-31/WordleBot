@@ -13,7 +13,6 @@ import (
 )
 
 func SetUpDatabase(config *Config, log log.Logger, sync bool) (*bun.DB, error) {
-	log.Info("Setting up database")
 	sqlDB := sql.OpenDB(pgdriver.NewConnector(
 		pgdriver.WithAddr(fmt.Sprintf("%s:%d", config.Database.Host, config.Database.Port)),
 		pgdriver.WithUser(config.Database.User),
@@ -24,6 +23,9 @@ func SetUpDatabase(config *Config, log log.Logger, sync bool) (*bun.DB, error) {
 	db := bun.NewDB(sqlDB, pgdialect.New(), bun.WithDiscardUnknownColumns())
 	if sync {
 		if err := db.ResetModel(context.TODO(), (*models.User)(nil)); err != nil {
+			return nil, err
+		}
+		if err := db.ResetModel(context.TODO(), (*models.Game)(nil)); err != nil {
 			return nil, err
 		}
 	}

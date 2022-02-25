@@ -28,6 +28,7 @@ func main() {
 	logger := log.New(log.Ltime | log.Lshortfile)
 	logger.SetLevel(log.LevelInfo)
 	logger.Info("Starting Wordlebot on Disgo ", info.Version)
+	logger.Infof("Syncing commands: %t, db: %t\n", *syncCommands, *syncDB)
 
 	config, err := types.LoadConfig(logger)
 	if err != nil {
