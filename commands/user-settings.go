@@ -2,8 +2,8 @@ package commands
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/Skye-31/WordleBot/models"
@@ -11,7 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func editUserSettings(_ *core.Bot, db *bun.DB, _ *types.WordsData, event *events.ApplicationCommandInteractionEvent) {
+func editUserSettings(db *bun.DB, w *types.WordsData, event *events.ApplicationCommandInteractionEvent) {
 	options := event.SlashCommandInteractionData().Options
 	u := models.User{
 		ID:                event.User.ID,
@@ -45,5 +45,39 @@ func editUserSettings(_ *core.Bot, db *bun.DB, _ *types.WordsData, event *events
 		_ = event.CreateMessage(discord.MessageCreate{Content: "Failed to edit user settings: " + err.Error()})
 		return
 	}
-	_ = event.CreateMessage(discord.MessageCreate{Content: "User settings edited!", Flags: discord.MessageFlagEphemeral})
+	viewUserSettings(db, w, &u, event)
+	return
+}
+
+func viewUserSettings(db *bun.DB, _ *types.WordsData, m *models.User, event *events.ApplicationCommandInteractionEvent) {
+	if m == nil {
+		u := models.User{
+			ID:        event.User.ID,
+			CachedTag: event.User.Tag(),
+		}
+		if _, err := db.NewSelect().Model(&u).WherePK().Exec(context.TODO()); err != nil {
+			u.Public = false
+			u.DefaultWordLength = 5
+		}
+		m = &u
+	}
+	_ = event.CreateMessage(discord.MessageCreate{
+		Content: "User settings for " + m.CachedTag + ":",
+		Embeds: []discord.Embed{
+			discord.NewEmbedBuilder().
+				SetAuthor(event.User.Tag(), "", event.User.EffectiveAvatarURL(128)).
+				SetTitle("User Settings").
+				AddField("Public", boolEmote(m.Public), true).
+				AddField("Default Word Length", fmt.Sprintf("%d", m.DefaultWordLength), true).
+				Build(),
+		},
+		Flags: discord.MessageFlagEphemeral,
+	})
+}
+
+func boolEmote(b bool) string {
+	if b {
+		return "✅"
+	}
+	return "❌"
 }

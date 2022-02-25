@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,7 +18,13 @@ import (
 	"github.com/oasisprotocol/curve25519-voi/primitives/ed25519"
 )
 
+var (
+	syncCommands = flag.Bool("sync-commands", false, "Whether the bot should sync commands")
+	syncDB       = flag.Bool("sync-db", false, "Whether the bot should sync the database")
+)
+
 func main() {
+	flag.Parse()
 	logger := log.New(log.Ltime | log.Lshortfile)
 	logger.SetLevel(log.LevelInfo)
 	logger.Info("Starting Wordlebot on Disgo ", info.Version)
@@ -39,7 +46,6 @@ func main() {
 	httpserver.Verify = func(publicKey httpserver.PublicKey, message, sig []byte) bool {
 		return ed25519.Verify(publicKey, message, sig)
 	}
-
 	disgo, err := bot.New(config.Token,
 		bot.WithLogger(logger),
 		bot.WithHTTPServerOpts(
@@ -55,18 +61,25 @@ func main() {
 
 	defer disgo.Close(context.TODO())
 
-	if config.DevMode {
-		if config.DevGuildID == "" {
-			logger.Fatal("DevMode is enabled but no DevGuildID is set")
-			return
-		}
-		if _, err = disgo.SetGuildCommands(config.DevGuildID, commands.Definition); err != nil {
-			logger.Fatal("error while registering commands: ", err)
-			return
+	if *syncCommands {
+		if config.DevMode {
+			if config.DevGuildID == "" {
+				logger.Fatal("DevMode is enabled but no DevGuildID is set")
+				return
+			}
+			if _, err = disgo.SetGuildCommands(config.DevGuildID, commands.Definition); err != nil {
+				logger.Fatal("error while registering commands: ", err)
+				return
+			}
+		} else {
+			if _, err = disgo.SetCommands(commands.Definition); err != nil {
+				logger.Fatal("error while registering commands: ", err)
+				return
+			}
 		}
 	}
 
-	db, err := types.SetUpDatabase(config, logger)
+	db, err := types.SetUpDatabase(config, logger, *syncDB)
 	if err != nil {
 		logger.Fatal("error while setting up database: ", err)
 		return
