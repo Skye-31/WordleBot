@@ -12,7 +12,7 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
-func SetUpDatabase(config *Config, log log.Logger) (*bun.DB, error) {
+func SetUpDatabase(config *Config, log log.Logger, sync bool) (*bun.DB, error) {
 	log.Info("Setting up database")
 	sqlDB := sql.OpenDB(pgdriver.NewConnector(
 		pgdriver.WithAddr(fmt.Sprintf("%s:%d", config.Database.Host, config.Database.Port)),
@@ -22,7 +22,7 @@ func SetUpDatabase(config *Config, log log.Logger) (*bun.DB, error) {
 		pgdriver.WithInsecure(true),
 	))
 	db := bun.NewDB(sqlDB, pgdialect.New(), bun.WithDiscardUnknownColumns())
-	if config.DevMode {
+	if sync {
 		if err := db.ResetModel(context.TODO(), (*models.User)(nil)); err != nil {
 			return nil, err
 		}
