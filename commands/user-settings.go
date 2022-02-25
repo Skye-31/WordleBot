@@ -7,11 +7,10 @@ import (
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/Skye-31/WordleBot/models"
-	"github.com/Skye-31/WordleBot/types"
 	"github.com/uptrace/bun"
 )
 
-func editUserSettings(db *bun.DB, w *types.WordsData, event *events.ApplicationCommandInteractionEvent) {
+func editUserSettings(db *bun.DB, event *events.ApplicationCommandInteractionEvent) {
 	options := event.SlashCommandInteractionData().Options
 	u := models.User{
 		ID:                event.User.ID,
@@ -41,27 +40,26 @@ func editUserSettings(db *bun.DB, w *types.WordsData, event *events.ApplicationC
 		columns = append(columns, "default_word_length")
 	}
 
-	if _, err := query.Model(&u).Column(columns...).Exec(context.TODO()); err != nil {
+	if _, err := query.Model(&u).Column(columns...).Returning("*").Exec(context.TODO()); err != nil {
 		_ = event.CreateMessage(discord.MessageCreate{Content: "Failed to edit user settings: " + err.Error()})
 		return
 	}
-	viewUserSettings(db, w, &u, event)
+	viewUserSettings(db, &u, event)
 }
 
-func viewUserSettings(db *bun.DB, _ *types.WordsData, m *models.User, event *events.ApplicationCommandInteractionEvent) {
+func viewUserSettings(db *bun.DB, m *models.User, event *events.ApplicationCommandInteractionEvent) {
 	if m == nil {
 		u := models.User{
 			ID:        event.User.ID,
 			CachedTag: event.User.Tag(),
 		}
-		if _, err := db.NewSelect().Model(&u).WherePK().Exec(context.TODO()); err != nil {
+		if err := db.NewSelect().Model(&u).WherePK().Scan(context.TODO()); err != nil {
 			u.Public = false
 			u.DefaultWordLength = 5
 		}
 		m = &u
 	}
 	_ = event.CreateMessage(discord.MessageCreate{
-		Content: "User settings for " + m.CachedTag + ":",
 		Embeds: []discord.Embed{
 			discord.NewEmbedBuilder().
 				SetAuthor(event.User.Tag(), "", event.User.EffectiveAvatarURL(128)).
