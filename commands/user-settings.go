@@ -20,23 +20,15 @@ func editUserSettings(db *bun.DB, event *events.ApplicationCommandInteractionEve
 	}
 
 	query := db.NewInsert().On("CONFLICT (id) DO UPDATE")
-	hasSetPublic := false
-	hasSetDefaultWordLength := false
+	columns := []string{"id", "tag"}
 	if o := options.BoolOption("public"); o != nil {
 		u.Public = o.Value
 		query.Set("public = ?", u.Public)
-		hasSetPublic = true
+		columns = append(columns, "public")
 	}
 	if o := options.IntOption("default-word-size"); o != nil {
 		u.DefaultWordLength = uint8(o.Value)
 		query.Set("default_word_length = ?", u.DefaultWordLength)
-		hasSetDefaultWordLength = true
-	}
-	columns := []string{"id", "tag"}
-	if hasSetPublic {
-		columns = append(columns, "public")
-	}
-	if hasSetDefaultWordLength {
 		columns = append(columns, "default_word_length")
 	}
 
