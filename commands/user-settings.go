@@ -46,7 +46,6 @@ func editUserSettings(db *bun.DB, w *types.WordsData, event *events.ApplicationC
 		return
 	}
 	viewUserSettings(db, w, &u, event)
-	return
 }
 
 func viewUserSettings(db *bun.DB, _ *types.WordsData, m *models.User, event *events.ApplicationCommandInteractionEvent) {
