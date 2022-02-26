@@ -83,7 +83,7 @@ var Definition = []discord.ApplicationCommandCreate{
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionString{
-				Name:        "guess",
+				Name:        "starting-word",
 				Description: "The word to start the game with",
 				Required:    true,
 			},
