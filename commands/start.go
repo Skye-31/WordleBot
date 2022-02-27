@@ -8,6 +8,7 @@ import (
 
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"github.com/DisgoOrg/log"
 	"github.com/Skye-31/WordleBot/models"
 	"github.com/Skye-31/WordleBot/types"
 	"github.com/uptrace/bun"
@@ -27,8 +28,8 @@ func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInte
 			Flags:   64,
 			Components: []discord.ContainerComponent{
 				discord.NewActionRow(
-					discord.NewPrimaryButton("Continue game", "start:continue").WithEmoji(discord.ComponentEmoji{Name: "➡"}),
-					discord.NewDangerButton("Give up", "start:giveup").WithEmoji(discord.ComponentEmoji{Name: "🗑"}),
+					discord.NewPrimaryButton("Continue game", "game:continue"),
+					discord.NewDangerButton("Give up", "game:giveup"),
 				)},
 		})
 		return
@@ -59,6 +60,32 @@ func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInte
 		_ = event.CreateMessage(discord.MessageCreate{Content: "Your starting word is not in the word list.", Flags: 64})
 		return
 	}
+
 	word := words.GetRandom()
-	_ = event.CreateMessage(discord.MessageCreate{Content: word})
+	game := models.Game{
+		ID:      event.User.ID,
+		Word:    word,
+		Guesses: []string{guess},
+	}
+	_, err = db.NewInsert().Model(&game).Exec(context.TODO())
+	if err != nil {
+		_ = event.CreateMessage(discord.MessageCreate{Content: "Error creating game", Flags: 64})
+		return
+	}
+
+	r := game.Render(event)
+	b, err := game.RenderImage(true)
+	if err != nil {
+		_ = event.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Error rendering image").SetFlags(64).Build())
+		return
+	}
+	attachment := discord.NewFile("word.png", b)
+	if err := event.CreateMessage(discord.NewMessageCreateBuilder().
+		SetEmbeds(r.Embeds...).
+		SetContainerComponents(r.Components...).
+		SetFiles(attachment).
+		SetFlags(r.Flags).
+		Build()); err != nil {
+		log.Errorf("Error creating message: %s", err)
+	}
 }
