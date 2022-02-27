@@ -4,6 +4,7 @@ import (
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"github.com/Skye-31/WordleBot/commands/components"
 	"github.com/Skye-31/WordleBot/types"
 	"github.com/uptrace/bun"
 )
@@ -21,6 +22,18 @@ func Listener(_ *core.Bot, db *bun.DB, words *types.WordsData) func(event *event
 			start(db, words, event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
+		}
+	}
+}
+
+func ComponentInteraction(_ *core.Bot, _ *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
+	return func(event *events.ComponentInteractionEvent) {
+		id := event.Data.ID()
+		switch id {
+		case "game:guess":
+			components.Guess(event)
+		default:
+			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown component interaction: " + id.String(), Flags: discord.MessageFlagEphemeral})
 		}
 	}
 }

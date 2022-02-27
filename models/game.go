@@ -84,6 +84,9 @@ func (g Game) Render(event *events.ApplicationCommandInteractionEvent) RenderRet
 	if event.GuildID != nil {
 		r.Flags = discord.MessageFlagEphemeral
 	}
+	if g.IsOver() {
+		r.Embeds[0].Description = "The word was ||" + g.Word + "||!"
+	}
 	return r
 }
 

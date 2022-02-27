@@ -3,7 +3,7 @@ module github.com/Skye-31/WordleBot
 go 1.17
 
 require (
-	github.com/DisgoOrg/disgo v0.7.3-0.20220227152639-219d0094fcbd
+	github.com/DisgoOrg/disgo v0.7.3-0.20220227172624-a25742e1df74
 	github.com/DisgoOrg/log v1.1.3
 	github.com/DisgoOrg/snowflake v1.0.4
 	github.com/fogleman/gg v1.3.0
@@ -16,7 +16,7 @@ require (
 require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20210812194225-61421b77c44b // indirect

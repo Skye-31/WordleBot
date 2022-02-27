@@ -88,6 +88,7 @@ func main() {
 
 	disgo.AddEventListeners(&events.ListenerAdapter{
 		OnApplicationCommandInteraction: commands.Listener(disgo, db, words),
+		OnComponentInteraction:          commands.ComponentInteraction(disgo, db, words),
 	})
 	if err = disgo.StartHTTPServer(); err != nil {
 		logger.Fatal("error while starting http server: ", err)
