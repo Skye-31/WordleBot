@@ -1,14 +1,16 @@
 package types
 
 import (
+	_ "embed"
 	"encoding/json"
-	"errors"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/DisgoOrg/log"
 )
+
+//go:embed data.json
+var WordBytes []byte
 
 type WordsData struct {
 	Four  WordLength `json:"4"`
@@ -52,15 +54,8 @@ func (w WordLength) GetRandom() string {
 }
 
 func LoadWordsData(log log.Logger) (*WordsData, error) {
-	file, err := os.Open("data.json")
-	if os.IsNotExist(err) {
-		return nil, errors.New("data.json not found")
-	} else if err != nil {
-		return nil, err
-	}
-
 	var words WordsData
-	if err = json.NewDecoder(file).Decode(&words); err != nil {
+	if err := json.Unmarshal(WordBytes, &words); err != nil {
 		return nil, err
 	}
 	four, five, six, seven, eight := len(words.Four), len(words.Five), len(words.Six), len(words.Seven), len(words.Eight)
