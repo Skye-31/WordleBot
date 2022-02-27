@@ -91,11 +91,12 @@ func (g Game) RenderImage(shouldDrawLetters bool) (*bytes.Buffer, error) {
 	width := len(g.Word)*50 + (len(g.Word)-1)*10
 	height := g.MaxGuesses()*50 + (g.MaxGuesses()-1)*10
 	dc := gg.NewContext(width, height)
-	if fontFace, err := loadFontFace(fontBytes, 30); err != nil {
+	fontFace, err := loadFontFace(fontBytes, 30)
+	if err != nil {
 		return nil, err
-	} else {
-		dc.SetFontFace(fontFace)
 	}
+	dc.SetFontFace(fontFace)
+
 	for i := 0; i < g.MaxGuesses(); i++ {
 		guessStatus := make([]int, len(g.Word))
 		letters := make([]string, len(g.Word))
@@ -123,7 +124,7 @@ func (g Game) RenderImage(shouldDrawLetters bool) (*bytes.Buffer, error) {
 		}
 	}
 	var b bytes.Buffer
-	err := dc.EncodePNG(&b)
+	err = dc.EncodePNG(&b)
 	return &b, err
 }
 
