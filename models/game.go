@@ -89,6 +89,7 @@ func (g Game) Render(event *core.CreateInteraction) RenderReturnInfo {
 			r.Embeds[0].Title = "Correct!"
 		} else {
 			r.Embeds[0].Title = "Nice try!"
+			r.Embeds[0].Color = 0xf25454
 		}
 		r.Embeds[0].Description = "The word was " + g.Word
 		r.Components = make([]discord.ContainerComponent, 0)

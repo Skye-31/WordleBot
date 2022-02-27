@@ -34,6 +34,8 @@ func ComponentInteraction(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(even
 			components.Guess(event)
 		case "game:continue":
 			components.Continue(db, event)
+		case "game:giveup":
+			components.GiveUp(db, event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown component interaction: " + id.String(), Flags: discord.MessageFlagEphemeral})
 		}
