@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core/events"
+	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/snowflake"
 	"github.com/golang/freetype/truetype"
@@ -63,14 +63,14 @@ type RenderReturnInfo struct {
 	Flags      discord.MessageFlags
 }
 
-func (g Game) Render(event *events.ApplicationCommandInteractionEvent) RenderReturnInfo {
+func (g Game) Render(event *core.CreateInteraction) RenderReturnInfo {
 	r := RenderReturnInfo{
 		Embeds: []discord.Embed{
 			discord.NewEmbedBuilder().
 				SetAuthor(event.User.Tag(), "", event.User.EffectiveAvatarURL(128)).
-				SetTitlef("Guess the word (%d/%d guesses)", len(g.Guesses), g.MaxGuesses()).
+				SetTitlef("Guess the word").
 				SetColor(0x54f27c).
-				SetImage("attachment://word.png").
+				SetImage("attachment://word-" + event.ID.String() + ".png").
 				Build(),
 		},
 		Components: []discord.ContainerComponent{
@@ -85,7 +85,13 @@ func (g Game) Render(event *events.ApplicationCommandInteractionEvent) RenderRet
 		r.Flags = discord.MessageFlagEphemeral
 	}
 	if g.IsOver() {
-		r.Embeds[0].Description = "The word was ||" + g.Word + "||!"
+		if g.IsCorrect() {
+			r.Embeds[0].Title = "Correct!"
+		} else {
+			r.Embeds[0].Title = "Nice try!"
+		}
+		r.Embeds[0].Description = "The word was " + g.Word
+		r.Components = make([]discord.ContainerComponent, 0)
 	}
 	return r
 }

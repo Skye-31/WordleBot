@@ -73,13 +73,13 @@ func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInte
 		return
 	}
 
-	r := game.Render(event)
+	r := game.Render(&event.CreateInteraction)
 	b, err := game.RenderImage(true)
 	if err != nil {
 		_ = event.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Error rendering image").SetFlags(64).Build())
 		return
 	}
-	attachment := discord.NewFile("word.png", b)
+	attachment := discord.NewFile("word-"+event.ID.String()+".png", b)
 	if err := event.CreateMessage(discord.NewMessageCreateBuilder().
 		SetEmbeds(r.Embeds...).
 		SetContainerComponents(r.Components...).

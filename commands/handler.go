@@ -38,6 +38,18 @@ func ComponentInteraction(_ *core.Bot, _ *bun.DB, _ *types.WordsData) func(event
 	}
 }
 
+func ModalInteraction(_ *core.Bot, db *bun.DB, wd *types.WordsData) func(event *events.ModalSubmitInteractionEvent) {
+	return func(event *events.ModalSubmitInteractionEvent) {
+		id := event.Data.CustomID
+		switch id {
+		case "game:guess:submit":
+			components.GuessSubmit(db, wd, event)
+		default:
+			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown modal interaction: " + id.String(), Flags: discord.MessageFlagEphemeral})
+		}
+	}
+}
+
 func commandName(data core.SlashCommandInteractionData) string {
 	name := data.Name()
 	if data.SubCommandGroupName != nil {
