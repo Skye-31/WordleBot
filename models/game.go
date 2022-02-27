@@ -2,14 +2,20 @@ package models
 
 import (
 	"bytes"
+	_ "embed"
 	"strings"
 
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/snowflake"
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
 
 	"github.com/fogleman/gg"
 )
+
+//go:embed static/arial.ttf
+var fontBytes []byte
 
 type Game struct {
 	ID         snowflake.Snowflake `bun:"id,pk,nullzero"`
@@ -85,8 +91,10 @@ func (g Game) RenderImage(shouldDrawLetters bool) (*bytes.Buffer, error) {
 	width := len(g.Word)*50 + (len(g.Word)-1)*10
 	height := g.MaxGuesses()*50 + (g.MaxGuesses()-1)*10
 	dc := gg.NewContext(width, height)
-	if err := dc.LoadFontFace("static/arial.ttf", 30); err != nil {
+	if fontFace, err := loadFontFace(fontBytes, 30); err != nil {
 		return nil, err
+	} else {
+		dc.SetFontFace(fontFace)
 	}
 	for i := 0; i < g.MaxGuesses(); i++ {
 		guessStatus := make([]int, len(g.Word))
@@ -130,4 +138,16 @@ func getColourFromStatus(status int) string {
 	default:
 		return "#3a3a3a"
 	}
+}
+
+func loadFontFace(fontBytes []byte, points float64) (font.Face, error) {
+	f, err := truetype.Parse(fontBytes)
+	if err != nil {
+		return nil, err
+	}
+	face := truetype.NewFace(f, &truetype.Options{
+		Size: points,
+		// Hinting: font.HintingFull,
+	})
+	return face, nil
 }
