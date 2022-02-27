@@ -10,7 +10,7 @@ import (
 )
 
 //go:embed data.json
-var WordBytes []byte
+var wordBytes []byte
 
 type WordsData struct {
 	Four  WordLength `json:"4"`
@@ -55,7 +55,7 @@ func (w WordLength) GetRandom() string {
 
 func LoadWordsData(log log.Logger) (*WordsData, error) {
 	var words WordsData
-	if err := json.Unmarshal(WordBytes, &words); err != nil {
+	if err := json.Unmarshal(wordBytes, &words); err != nil {
 		return nil, err
 	}
 	four, five, six, seven, eight := len(words.Four), len(words.Five), len(words.Six), len(words.Seven), len(words.Eight)
