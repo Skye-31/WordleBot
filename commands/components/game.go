@@ -28,14 +28,35 @@ func Guess(event *events.ComponentInteractionEvent) {
 		).Build())
 }
 
-func GuessSubmit(db *bun.DB, wd *types.WordsData, event *events.ModalSubmitInteractionEvent) {
-	c := event.Data.Components[0].Components()[0]
-	textInput, ok := c.(discord.TextInputComponent)
-	if !ok {
-		_ = event.CreateMessage(discord.MessageCreate{Content: "Failed to process your interaction", Flags: 64})
+func Continue(db *bun.DB, event *events.ComponentInteractionEvent) {
+	game := models.Game{
+		ID: event.User.ID,
+	}
+	if err := db.NewSelect().Model(&game).WherePK().Scan(context.TODO(), &game); err != nil {
+		_ = event.CreateMessage(discord.MessageCreate{Content: "Error fetching game information from database", Flags: 64})
 		return
 	}
-	guess := strings.ToLower(textInput.Value)
+	r := game.Render(&event.CreateInteraction)
+	b, err := game.RenderImage(true)
+	if err != nil {
+		_ = event.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Error rendering image").SetFlags(64).Build())
+		return
+	}
+	attachment := discord.NewFile("word-"+event.ID.String()+".png", b)
+	if err := event.UpdateMessage(discord.NewMessageUpdateBuilder().
+		SetEmbeds(r.Embeds...).
+		SetContainerComponents(r.Components...).
+		SetContent("").
+		RetainAttachments().
+		SetFiles(attachment).
+		SetFlags(r.Flags).
+		Build()); err != nil {
+		log.Errorf("Error updating message: %s", err)
+	}
+}
+
+func GuessSubmit(db *bun.DB, wd *types.WordsData, event *events.ModalSubmitInteractionEvent) {
+	guess := strings.ToLower(*event.Data.Components.Text("guess"))
 
 	game := models.Game{
 		ID: event.User.ID,
@@ -69,7 +90,7 @@ func GuessSubmit(db *bun.DB, wd *types.WordsData, event *events.ModalSubmitInter
 		SetFiles(attachment).
 		SetFlags(r.Flags).
 		Build()); err != nil {
-		log.Errorf("Error creating message: %s", err)
+		log.Errorf("Error updating message: %s", err)
 	}
 	if game.IsOver() {
 		if _, err = db.NewDelete().Model(&game).WherePK().Exec(context.TODO()); err != nil {

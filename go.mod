@@ -3,7 +3,7 @@ module github.com/Skye-31/WordleBot
 go 1.17
 
 require (
-	github.com/DisgoOrg/disgo v0.7.3-0.20220227172624-a25742e1df74
+	github.com/DisgoOrg/disgo v0.7.3-0.20220227183000-4bf19136f6cc
 	github.com/DisgoOrg/log v1.1.3
 	github.com/DisgoOrg/snowflake v1.0.4
 	github.com/fogleman/gg v1.3.0

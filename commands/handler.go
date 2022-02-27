@@ -26,12 +26,14 @@ func Listener(_ *core.Bot, db *bun.DB, words *types.WordsData) func(event *event
 	}
 }
 
-func ComponentInteraction(_ *core.Bot, _ *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
+func ComponentInteraction(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
 	return func(event *events.ComponentInteractionEvent) {
 		id := event.Data.ID()
 		switch id {
 		case "game:guess":
 			components.Guess(event)
+		case "game:continue":
+			components.Continue(db, event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown component interaction: " + id.String(), Flags: discord.MessageFlagEphemeral})
 		}
