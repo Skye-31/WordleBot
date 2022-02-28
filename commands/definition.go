@@ -54,6 +54,7 @@ var Definition = []discord.ApplicationCommandCreate{
 				Description: "View the overall leaderboard words",
 			},
 		},
+		DefaultPermission: true,
 	},
 	discord.SlashCommandCreate{
 		Name:              "streak",
