@@ -10,6 +10,7 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/extra/bundebug"
 )
 
 func SetUpDatabase(config *Config, log log.Logger, sync bool) (*bun.DB, error) {
@@ -21,11 +22,15 @@ func SetUpDatabase(config *Config, log log.Logger, sync bool) (*bun.DB, error) {
 		pgdriver.WithInsecure(true),
 	))
 	db := bun.NewDB(sqlDB, pgdialect.New(), bun.WithDiscardUnknownColumns())
+	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(config.LogLevel == 0)))
 	if sync {
 		if err := db.ResetModel(context.TODO(), (*models.User)(nil)); err != nil {
 			return nil, err
 		}
 		if err := db.ResetModel(context.TODO(), (*models.Game)(nil)); err != nil {
+			return nil, err
+		}
+		if err := db.ResetModel(context.TODO(), (*models.UserStats)(nil)); err != nil {
 			return nil, err
 		}
 	}
