@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
@@ -29,13 +31,16 @@ func Listener(_ *core.Bot, db *bun.DB, words *types.WordsData) func(event *event
 func ComponentInteraction(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
 	return func(event *events.ComponentInteractionEvent) {
 		id := event.Data.ID()
-		switch id {
-		case "game:guess":
+		startID := strings.Split(id.String(), ":")[1]
+		switch startID {
+		case "guess":
 			components.Guess(event)
-		case "game:continue":
+		case "continue":
 			components.Continue(db, event)
-		case "game:giveup":
+		case "giveup":
 			components.GiveUp(db, event)
+		case "share":
+			components.Share(event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown component interaction: " + id.String(), Flags: discord.MessageFlagEphemeral})
 		}

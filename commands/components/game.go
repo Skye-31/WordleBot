@@ -86,6 +86,30 @@ func GiveUp(db *bun.DB, event *events.ComponentInteractionEvent) {
 	}
 }
 
+func Share(event *events.ComponentInteractionEvent) {
+	id := event.Data.ID()
+	split := strings.Split(id.String(), ":")
+	guesses, word := strings.Split(split[2], ","), split[3]
+	game := models.Game{
+		ID:      event.User.ID,
+		Guesses: guesses,
+		Word:    word,
+	}
+	b, err := game.RenderImage(false)
+	if err != nil {
+		_ = event.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Error rendering image").SetFlags(64).Build())
+		return
+	}
+	attachment := discord.NewFile("word-"+event.ID.String()+".png", b)
+	if err := event.CreateMessage(discord.NewMessageCreateBuilder().
+		SetContent("Your sharable wordle **" + event.User.Tag() + "**!").
+		SetFlags(64).
+		SetFiles(attachment).
+		Build()); err != nil {
+		log.Errorf("Error updating message: %s", err)
+	}
+}
+
 func GuessSubmit(db *bun.DB, wd *types.WordsData, event *events.ModalSubmitInteractionEvent) {
 	guess := strings.ToLower(*event.Data.Components.Text("guess"))
 
