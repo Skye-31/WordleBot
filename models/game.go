@@ -44,12 +44,14 @@ func (g Game) IsOver() bool {
 // LetterStatus returns []0,1,2 for not guessed, guessed, and guessed in right position
 func (g Game) LetterStatus(guess string) []int {
 	s := make([]int, len(g.Word))
+	letterCounts := make(map[string]int)
 
 	for pos, char := range guess {
+		letterCounts[string(char)]++
 		if char == rune(g.Word[pos]) {
 			s[pos] = 2
 		} else {
-			if strings.Contains(g.Word, string(char)) {
+			if strings.Count(g.Word, string(char)) >= letterCounts[string(char)] {
 				s[pos] = 1
 			}
 		}
