@@ -41,32 +41,32 @@ var Definition = []discord.ApplicationCommandCreate{
 			},
 		},
 	},
-	discord.SlashCommandCreate{
-		Name:        "leaderboard",
-		Description: "View the leaderboard",
-		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionSubCommand{
-				Name:        "streaks",
-				Description: "View the leaderboard for streaks",
-			},
-			discord.ApplicationCommandOptionSubCommand{
-				Name:        "total",
-				Description: "View the overall leaderboard words",
-			},
-		},
-		DefaultPermission: true,
-	},
-	discord.SlashCommandCreate{
-		Name:              "streak",
-		Description:       "View streak information",
-		DefaultPermission: true,
-		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionUser{
-				Name:        "user",
-				Description: "The user to view the streak of",
-			},
-		},
-	},
+	//discord.SlashCommandCreate{
+	//	Name:        "leaderboard",
+	//	Description: "View the leaderboard",
+	//	Options: []discord.ApplicationCommandOption{
+	//		discord.ApplicationCommandOptionSubCommand{
+	//			Name:        "streaks",
+	//			Description: "View the leaderboard for streaks",
+	//		},
+	//		discord.ApplicationCommandOptionSubCommand{
+	//			Name:        "total",
+	//			Description: "View the overall leaderboard words",
+	//		},
+	//	},
+	//	DefaultPermission: true,
+	//},
+	//discord.SlashCommandCreate{
+	//	Name:              "streak",
+	//	Description:       "View streak information",
+	//	DefaultPermission: true,
+	//	Options: []discord.ApplicationCommandOption{
+	//		discord.ApplicationCommandOptionUser{
+	//			Name:        "user",
+	//			Description: "The user to view the streak of",
+	//		},
+	//	},
+	//},
 	discord.SlashCommandCreate{
 		Name:              "stats",
 		Description:       "View a user's stats",
