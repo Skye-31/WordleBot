@@ -44,6 +44,12 @@ func main() {
 	}
 	_ = words
 
+	db, err := types.SetUpDatabase(config, logger, *syncDB)
+	if err != nil {
+		logger.Fatal("error while setting up database: ", err)
+		return
+	}
+
 	httpserver.Verify = func(publicKey httpserver.PublicKey, message, sig []byte) bool {
 		return ed25519.Verify(publicKey, message, sig)
 	}
@@ -55,13 +61,17 @@ func main() {
 			httpserver.WithPublicKey(config.PublicKey),
 		),
 		bot.WithCacheOpts(core.WithCacheFlags(core.CacheFlagsNone), core.WithMemberCachePolicy(core.MemberCachePolicyNone), core.WithMessageCachePolicy(core.MessageCachePolicyNone)),
+		bot.WithEventListeners(&events.ListenerAdapter{
+			OnApplicationCommandInteraction: commands.Listener(db, words),
+			OnComponentInteraction:          commands.ComponentInteraction(db, words),
+			OnModalSubmit:                   commands.ModalInteraction(db, words),
+		}),
 	)
 	if err != nil {
 		logger.Fatal("error while building disgo instance: ", err)
 	}
 
 	defer disgo.Close(context.TODO())
-
 	if *syncCommands {
 		if config.DevMode {
 			if config.DevGuildID == "" {
@@ -80,17 +90,6 @@ func main() {
 		}
 	}
 
-	db, err := types.SetUpDatabase(config, logger, *syncDB)
-	if err != nil {
-		logger.Fatal("error while setting up database: ", err)
-		return
-	}
-
-	disgo.AddEventListeners(&events.ListenerAdapter{
-		OnApplicationCommandInteraction: commands.Listener(disgo, db, words),
-		OnComponentInteraction:          commands.ComponentInteraction(disgo, db, words),
-		OnModalSubmit:                   commands.ModalInteraction(disgo, db, words),
-	})
 	if err = disgo.StartHTTPServer(); err != nil {
 		logger.Fatal("error while starting http server: ", err)
 		return
