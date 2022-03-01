@@ -65,12 +65,31 @@ func handleArray(a []int) string {
 		return ""
 	}
 	total := 0
+	valMap := make(map[int]int)
 	for i := range a {
 		total += a[i]
+		valMap[a[i]]++
 	}
 	avg := float64(total) / float64(len(a))
 	s := "**Total**: " + strconv.Itoa(len(a)) + "\n" +
-		"**Average**: " + fmt.Sprintf("%.1f", avg) + "\n"
+		"**Average**: " + floatToString(avg) + "\n"
+	if valMap[0] > 0 {
+		s += "**Gave up**: " + strconv.Itoa(valMap[0]) + "\n"
+	}
+	for i := 1; i < 9; i++ {
+		if valMap[i] > 0 {
+			s += "**" + strconv.Itoa(i) + "**: " + strconv.Itoa(valMap[i]) + "\n"
+		}
+	}
 
 	return s
+}
+
+func floatToString(f float64) string {
+	s := fmt.Sprintf("%.1f", f)
+	if s[len(s)-1] == '0' {
+		return s[:len(s)-2]
+	}
+	return s
+
 }
