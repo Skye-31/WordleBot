@@ -96,4 +96,9 @@ var Definition = []discord.ApplicationCommandCreate{
 			},
 		},
 	},
+	discord.SlashCommandCreate{
+		Name:              "github",
+		Description:       "View the source code for this bot",
+		DefaultPermission: true,
+	},
 }

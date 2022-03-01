@@ -11,7 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func Listener(_ *core.Bot, db *bun.DB, words *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
+func Listener(db *bun.DB, words *types.WordsData) func(event *events.ApplicationCommandInteractionEvent) {
 	return func(event *events.ApplicationCommandInteractionEvent) {
 		data := event.SlashCommandInteractionData()
 		n := commandName(data)
@@ -22,13 +22,17 @@ func Listener(_ *core.Bot, db *bun.DB, words *types.WordsData) func(event *event
 			viewUserSettings(db, nil, event)
 		case "start":
 			start(db, words, event)
+		case "stats":
+			stats(db, event)
+		case "github":
+			_ = event.CreateMessage(discord.MessageCreate{Content: "[Source](https://github.com/Skye-31/WordleBot)"})
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
 		}
 	}
 }
 
-func ComponentInteraction(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
+func ComponentInteraction(db *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
 	return func(event *events.ComponentInteractionEvent) {
 		id := event.Data.ID()
 		startID := strings.Split(id.String(), ":")[1]
@@ -47,7 +51,7 @@ func ComponentInteraction(_ *core.Bot, db *bun.DB, _ *types.WordsData) func(even
 	}
 }
 
-func ModalInteraction(_ *core.Bot, db *bun.DB, wd *types.WordsData) func(event *events.ModalSubmitInteractionEvent) {
+func ModalInteraction(db *bun.DB, wd *types.WordsData) func(event *events.ModalSubmitInteractionEvent) {
 	return func(event *events.ModalSubmitInteractionEvent) {
 		id := event.Data.CustomID
 		switch id {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/json"
@@ -84,6 +85,11 @@ func GiveUp(db *bun.DB, event *events.ComponentInteractionEvent) {
 	if _, err = db.NewDelete().Model(&game).WherePK().Exec(context.TODO()); err != nil {
 		log.Errorf("Error deleting game: %s", err)
 	}
+	uStats, columnToUpdate := getUStats(game, event.CreateInteraction)
+	_, err = db.NewInsert().Model(&uStats).On("CONFLICT (id) DO UPDATE").Set(columnToUpdate+" = array_append(user_stats."+columnToUpdate+", ?::SMALLINT)", 0).Exec(context.TODO())
+	if err != nil {
+		log.Errorf("Error updating user stats: %s", err)
+	}
 }
 
 func Share(event *events.ComponentInteractionEvent) {
@@ -151,9 +157,43 @@ func GuessSubmit(db *bun.DB, wd *types.WordsData, event *events.ModalSubmitInter
 		if _, err = db.NewDelete().Model(&game).WherePK().Exec(context.TODO()); err != nil {
 			log.Errorf("Error deleting game: %s", err)
 		}
+		uStats, columnToUpdate := getUStats(game, event.CreateInteraction)
+		_, err := db.NewInsert().Model(&uStats).On("CONFLICT (id) DO UPDATE").Set(columnToUpdate+" = array_append(user_stats."+columnToUpdate+", ?::SMALLINT)", len(game.Guesses)).Exec(context.TODO())
+		if err != nil {
+			log.Errorf("Error updating user stats: %s", err)
+		}
 	} else {
 		if _, err := db.NewUpdate().Model(&game).WherePK().Column("guesses").Exec(context.TODO()); err != nil {
 			event.Bot().Logger.Errorf("Error updating game: %s", err)
 		}
 	}
+}
+
+func getUStats(game models.Game, event core.CreateInteraction) (models.UserStats, string) {
+	ustats := models.UserStats{
+		ID: event.User.ID,
+	}
+	columnToUpdate := ""
+	n := []int{len(game.Guesses)}
+	if game.HasGivenUp {
+		n[0] = 0
+	}
+	switch len(game.Word) {
+	case 4:
+		columnToUpdate = "four"
+		ustats.Four = n
+	case 5:
+		columnToUpdate = "five"
+		ustats.Five = n
+	case 6:
+		columnToUpdate = "six"
+		ustats.Six = n
+	case 7:
+		columnToUpdate = "seven"
+		ustats.Seven = n
+	case 8:
+		columnToUpdate = "eight"
+		ustats.Eight = n
+	}
+	return ustats, columnToUpdate
 }
