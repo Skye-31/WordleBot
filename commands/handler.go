@@ -24,6 +24,8 @@ func Listener(db *bun.DB, words *types.WordsData) func(event *events.Application
 			start(db, words, event)
 		case "stats":
 			stats(db, event)
+		case "github":
+			_ = event.CreateMessage(discord.MessageCreate{Content: "[Source](https://github.com/Skye-31/WordleBot)"})
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
 		}
