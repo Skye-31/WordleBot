@@ -1,0 +1,14 @@
+{
+  "dev_mode": true,
+  "dev_guild_id": "my dev guild ID, if dev_mode is true",
+  "log_level": 2,
+  "token": "my-bot-token",
+  "public_key": "my-discord-public-key",
+  "database": {
+	"host": "localhost",
+	"port": 5432,
+	"user": "postgres",
+	"password": "MyPgPassword",
+	"db_name": "WordleBot"
+  }
+}

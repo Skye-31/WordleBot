@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  bot:
+    build: .
+    container_name: wordle-bot
+    ports:
+      - "4567:4567"
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json
