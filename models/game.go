@@ -16,7 +16,7 @@ import (
 )
 
 //go:embed static/arial.ttf
-var fontBytes []byte
+var FontBytes []byte
 
 type Game struct {
 	ID         snowflake.Snowflake `bun:"id,pk,nullzero"`
@@ -106,7 +106,7 @@ func (g Game) RenderImage(shouldDrawLetters bool) (*bytes.Buffer, error) {
 	width := len(g.Word)*50 + (len(g.Word)-1)*10
 	height := g.MaxGuesses()*50 + (g.MaxGuesses()-1)*10
 	dc := gg.NewContext(width, height)
-	fontFace, err := loadFontFace(fontBytes, 30)
+	fontFace, err := LoadFontFace(FontBytes, 30)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func getColourFromStatus(status int) string {
 	}
 }
 
-func loadFontFace(fontBytes []byte, points float64) (font.Face, error) {
+func LoadFontFace(fontBytes []byte, points float64) (font.Face, error) {
 	f, err := truetype.Parse(fontBytes)
 	if err != nil {
 		return nil, err

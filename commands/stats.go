@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
@@ -33,56 +32,44 @@ func stats(db *bun.DB, event *events.ApplicationCommandInteractionEvent) {
 		_ = event.CreateMessage(discord.MessageCreate{Content: "This user has no past stats.", Flags: 64})
 		return
 	}
-	_ = event.CreateMessage(discord.NewMessageCreateBuilder().AddEmbeds(analyzeStats(mStats, user)).Build())
+	_ = event.CreateMessage(analyzeStats(mStats, user))
 }
 
-func analyzeStats(s models.UserStats, user *core.User) discord.Embed {
+func analyzeStats(s models.UserStats, user *core.User) discord.MessageCreate {
+	m := discord.NewMessageCreateBuilder()
 	e := discord.NewEmbedBuilder().
 		SetAuthor("Stats for "+user.Tag(), "", user.EffectiveAvatarURL(128)).
 		SetColor(0x4fffff)
 
-	if h := handleArray(s.Four); h != "" {
-		e.AddField("4 Letter Words", h, true)
-	}
-	if h := handleArray(s.Five); h != "" {
-		e.AddField("5 Letter Words", h, true)
-	}
-	if h := handleArray(s.Six); h != "" {
-		e.AddField("6 Letter Words", h, true)
-	}
-	if h := handleArray(s.Seven); h != "" {
-		e.AddField("7 Letter Words", h, true)
-	}
-	if h := handleArray(s.Eight); h != "" {
-		e.AddField("8 Letter Words", h, true)
+	total := append(append(append(append(s.Four, s.Five...), s.Six...), s.Seven...), s.Eight...)
+	for i, v := range [][]int{total, s.Four, s.Five, s.Six, s.Seven, s.Eight} {
+		if len(v) == 0 {
+			continue
+		}
+		l := analyzeLength(v)
+		e.AddField(getTitle(i), l.String(), true)
 	}
 
-	return e.Build()
+	return m.AddEmbeds(e.Build()).Build()
 }
 
-func handleArray(a []int) string {
-	if len(a) == 0 {
-		return ""
+func analyzeLength(a []int) lengthAnalysis {
+	l := lengthAnalysis{Raw: a}
+	if len(l.Raw) == 0 {
+		return l
 	}
-	total := 0
-	valMap := make(map[int]int)
-	for i := range a {
-		total += a[i]
-		valMap[a[i]]++
+	l.Total = 0
+	l.ValMap = make(map[int]int)
+	for i := range l.Raw {
+		l.Total += l.Raw[i]
+		l.ValMap[l.Raw[i]]++
 	}
-	avg := float64(total) / float64(len(a))
-	s := "**Total**: " + strconv.Itoa(len(a)) + "\n" +
-		"**Average**: " + floatToString(avg) + "\n"
-	if valMap[0] > 0 {
-		s += "**Gave up**: " + strconv.Itoa(valMap[0]) + "\n"
+	l.Avg = floatToString(float64(l.Total) / float64(len(l.Raw)))
+	if l.ValMap[0] > 0 {
+		l.GaveUp = l.ValMap[0]
+		delete(l.ValMap, 0)
 	}
-	for i := 1; i < 9; i++ {
-		if valMap[i] > 0 {
-			s += "**" + strconv.Itoa(i) + "**: " + strconv.Itoa(valMap[i]) + "\n"
-		}
-	}
-
-	return s
+	return l
 }
 
 func floatToString(f float64) string {
@@ -91,5 +78,42 @@ func floatToString(f float64) string {
 		return s[:len(s)-2]
 	}
 	return s
+}
 
+type lengthAnalysis struct {
+	Total  int
+	Avg    string
+	GaveUp int
+	Raw    []int
+	ValMap map[int]int
+}
+
+func (l *lengthAnalysis) String() string {
+	s := fmt.Sprintf("%d Games Total\nAverage: %s\n", len(l.Raw), l.Avg)
+	if l.GaveUp > 0 {
+		s += fmt.Sprintf("Gave up: %d\n", l.GaveUp)
+	}
+	for i := 0; i < 9; i++ {
+		if j, ok := l.ValMap[i]; ok {
+			s += fmt.Sprintf("%d: %d\n", i, j)
+		}
+
+	}
+	return s
+}
+
+func getTitle(i int) string {
+	if i == 0 {
+		return "Total"
+	}
+	return map[int]string{
+		1: "1",
+		2: "2",
+		3: "3",
+		4: "4",
+		5: "5",
+		6: "6",
+		7: "7",
+		8: "8",
+	}[i] + " letter words"
 }
