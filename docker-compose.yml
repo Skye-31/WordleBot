@@ -8,3 +8,4 @@ services:
     restart: unless-stopped
     volumes:
       - ./config.json:/app/config.json
+    #command: --sync-commands --sync-db
