@@ -22,6 +22,8 @@ func Listener(db *bun.DB, words *types.WordsData) func(event *events.Application
 			viewUserSettings(db, nil, event)
 		case "start":
 			start(db, words, event)
+		case "stats":
+			stats(db, event)
 		default:
 			_ = event.CreateMessage(discord.MessageCreate{Content: "Unknown command: " + n, Flags: discord.MessageFlagEphemeral})
 		}
