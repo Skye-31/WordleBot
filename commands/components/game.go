@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/DisgoOrg/disgo/core"
@@ -15,6 +16,16 @@ import (
 )
 
 func Guess(event *events.ComponentInteractionEvent) {
+	minlength, maxlength := 4, 8
+	if split := strings.Split(event.Data.ID().String(), ":"); len(split) > 2 {
+		var err error
+		minlength, err = strconv.Atoi(split[2])
+		maxlength, err = strconv.Atoi(split[2])
+		if err != nil {
+			log.Error(err)
+			minlength, maxlength = 4, 8
+		}
+	}
 	_ = event.CreateModal(discord.NewModalCreateBuilder().
 		SetTitle("Enter your new guess").
 		SetCustomID("game:guess:submit").
@@ -22,8 +33,8 @@ func Guess(event *events.ComponentInteractionEvent) {
 			CustomID:  "guess",
 			Style:     discord.TextInputStyleShort,
 			Label:     "Your guess",
-			MinLength: *json.NewInt(4),
-			MaxLength: 8,
+			MinLength: *json.NewInt(minlength),
+			MaxLength: maxlength,
 			Required:  true,
 		},
 		).Build())

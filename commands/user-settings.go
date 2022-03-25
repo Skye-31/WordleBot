@@ -51,7 +51,7 @@ func viewUserSettings(db *bun.DB, m *models.User, event *events.ApplicationComma
 		}
 		m = &u
 	}
-	_ = event.CreateMessage(discord.MessageCreate{
+	if err := event.CreateMessage(discord.MessageCreate{
 		Embeds: []discord.Embed{
 			discord.NewEmbedBuilder().
 				SetAuthor(event.User.Tag(), "", event.User.EffectiveAvatarURL(128)).
@@ -61,7 +61,9 @@ func viewUserSettings(db *bun.DB, m *models.User, event *events.ApplicationComma
 				Build(),
 		},
 		Flags: discord.MessageFlagEphemeral,
-	})
+	}); err != nil {
+		event.Bot().Logger.Error(err)
+	}
 }
 
 func boolEmote(b bool) string {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/DisgoOrg/disgo/core"
@@ -78,7 +79,7 @@ func (g Game) Render(event *core.CreateInteraction) RenderReturnInfo {
 		},
 		Components: []discord.ContainerComponent{
 			discord.NewActionRow(
-				discord.NewPrimaryButton("Guess", "game:guess"),
+				discord.NewPrimaryButton("Guess", discord.CustomID("game:guess:"+strconv.Itoa(len(g.Word)))),
 				discord.NewDangerButton("Give up", "game:giveup"),
 			),
 		},
