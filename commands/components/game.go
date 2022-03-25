@@ -18,11 +18,15 @@ import (
 func Guess(event *events.ComponentInteractionEvent) {
 	minlength, maxlength := 4, 8
 	if split := strings.Split(event.Data.ID().String(), ":"); len(split) > 2 {
-		var err error
+		var err, err2 error
 		minlength, err = strconv.Atoi(split[2])
-		maxlength, err = strconv.Atoi(split[2])
+		maxlength, err2 = strconv.Atoi(split[2])
 		if err != nil {
 			log.Error(err)
+			minlength, maxlength = 4, 8
+		}
+		if err2 != nil {
+			log.Error(err2)
 			minlength, maxlength = 4, 8
 		}
 	}
