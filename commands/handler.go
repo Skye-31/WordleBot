@@ -3,11 +3,10 @@ package commands
 import (
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core"
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
 	"github.com/Skye-31/WordleBot/commands/components"
 	"github.com/Skye-31/WordleBot/types"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"github.com/uptrace/bun"
 )
 
@@ -34,7 +33,7 @@ func Listener(db *bun.DB, words *types.WordsData) func(event *events.Application
 
 func ComponentInteraction(db *bun.DB, _ *types.WordsData) func(event *events.ComponentInteractionEvent) {
 	return func(event *events.ComponentInteractionEvent) {
-		id := event.Data.ID()
+		id := event.Data.CustomID()
 		startID := strings.Split(id.String(), ":")[1]
 		switch startID {
 		case "guess":
@@ -63,8 +62,8 @@ func ModalInteraction(db *bun.DB, wd *types.WordsData) func(event *events.ModalS
 	}
 }
 
-func commandName(data core.SlashCommandInteractionData) string {
-	name := data.Name()
+func commandName(data discord.SlashCommandInteractionData) string {
+	name := data.CommandName()
 	if data.SubCommandGroupName != nil {
 		name += "/" + *data.SubCommandGroupName
 	}

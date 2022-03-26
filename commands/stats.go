@@ -5,20 +5,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DisgoOrg/disgo/core"
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
 	"github.com/Skye-31/WordleBot/models"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"github.com/fogleman/gg"
 	"github.com/uptrace/bun"
 )
 
 func stats(db *bun.DB, event *events.ApplicationCommandInteractionEvent) {
-	user := event.User
-	if u := event.SlashCommandInteractionData().Options.UserOption("user"); u != nil {
-		user = u.User()
+	user := event.User()
+	if u, e := event.SlashCommandInteractionData().OptUser("user"); e {
+		user = u
 	}
-	if user.ID != event.User.ID {
+	if user.ID != event.User().ID {
 		mu := models.User{
 			ID: user.ID,
 		}
@@ -37,10 +36,10 @@ func stats(db *bun.DB, event *events.ApplicationCommandInteractionEvent) {
 	_ = event.CreateMessage(analyzeStats(mStats, user))
 }
 
-func analyzeStats(s models.UserStats, user *core.User) discord.MessageCreate {
+func analyzeStats(s models.UserStats, user discord.User) discord.MessageCreate {
 	m := discord.NewMessageCreateBuilder()
 	e := discord.NewEmbedBuilder().
-		SetAuthor("Stats for "+user.Tag(), "", user.EffectiveAvatarURL(128)).
+		SetAuthor("Stats for "+user.Tag(), "", user.EffectiveAvatarURL(discord.WithSize(128))).
 		SetImage("attachment://stats.png").
 		SetColor(0x4fffff)
 
@@ -98,7 +97,7 @@ func analyzeStats(s models.UserStats, user *core.User) discord.MessageCreate {
 	if err := dc.EncodePNG(&b); err != nil {
 		return m.SetContent("Error generating graph").Build()
 	}
-	f := discord.NewFile("stats.png", &b)
+	f := discord.NewFile("stats.png", "Wordle Stats", &b)
 	return m.AddFiles(f).AddEmbeds(e.Build()).Build()
 }
 

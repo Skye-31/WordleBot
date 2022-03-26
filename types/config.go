@@ -5,8 +5,8 @@ import (
 	"errors"
 	"os"
 
-	"github.com/DisgoOrg/log"
-	"github.com/DisgoOrg/snowflake"
+	"github.com/disgoorg/log"
+	"github.com/disgoorg/snowflake"
 )
 
 func LoadConfig(log log.Logger) (*Config, error) {

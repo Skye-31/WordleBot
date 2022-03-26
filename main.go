@@ -7,14 +7,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DisgoOrg/disgo/core"
-	"github.com/DisgoOrg/disgo/core/bot"
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/httpserver"
-	"github.com/DisgoOrg/disgo/info"
-	"github.com/DisgoOrg/log"
 	"github.com/Skye-31/WordleBot/commands"
 	"github.com/Skye-31/WordleBot/types"
+	"github.com/disgoorg/disgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgo/httpserver"
+	"github.com/disgoorg/log"
 	"github.com/oasisprotocol/curve25519-voi/primitives/ed25519"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	flag.Parse()
 	logger := log.New(log.Ltime | log.Lshortfile)
 	logger.SetLevel(log.LevelInfo)
-	logger.Info("Starting Wordlebot on Disgo ", info.Version)
+	logger.Info("Starting Wordlebot on Disgo ", disgo.Version)
 	logger.Infof("Syncing commands: %t, db: %t\n", *syncCommands, *syncDB)
 
 	config, err := types.LoadConfig(logger)
@@ -53,14 +53,14 @@ func main() {
 	httpserver.Verify = func(publicKey httpserver.PublicKey, message, sig []byte) bool {
 		return ed25519.Verify(publicKey, message, sig)
 	}
-	disgo, err := bot.New(config.Token,
+	client, err := disgo.New(config.Token,
 		bot.WithLogger(logger),
-		bot.WithHTTPServerOpts(
+		bot.WithHTTPServerConfigOpts(
 			httpserver.WithURL("/interactions"),
-			httpserver.WithPort(":4567"),
+			httpserver.WithAddress(":4567"),
 			httpserver.WithPublicKey(config.PublicKey),
 		),
-		bot.WithCacheOpts(core.WithCacheFlags(core.CacheFlagsNone), core.WithMemberCachePolicy(core.MemberCachePolicyNone), core.WithMessageCachePolicy(core.MessageCachePolicyNone)),
+		bot.WithCacheConfigOpts(cache.WithCacheFlags(cache.FlagsNone), cache.WithMemberCachePolicy(cache.MemberCachePolicyNone), cache.WithMessageCachePolicy(cache.MessageCachePolicyNone)),
 		bot.WithEventListeners(&events.ListenerAdapter{
 			OnApplicationCommandInteraction: commands.Listener(db, words),
 			OnComponentInteraction:          commands.ComponentInteraction(db, words),
@@ -71,26 +71,26 @@ func main() {
 		logger.Fatal("error while building disgo instance: ", err)
 	}
 
-	defer disgo.Close(context.TODO())
+	defer client.Close(context.TODO())
 	if *syncCommands {
 		if config.DevMode {
 			if config.DevGuildID == "" {
 				logger.Fatal("DevMode is enabled but no DevGuildID is set")
 				return
 			}
-			if _, err = disgo.SetGuildCommands(config.DevGuildID, commands.Definition); err != nil {
+			if _, err = client.Rest().Applications().SetGuildCommands(client.ApplicationID(), config.DevGuildID, commands.Definition); err != nil {
 				logger.Fatal("error while registering commands: ", err)
 				return
 			}
 		} else {
-			if _, err = disgo.SetCommands(commands.Definition); err != nil {
+			if _, err = client.Rest().Applications().SetGlobalCommands(client.ApplicationID(), commands.Definition); err != nil {
 				logger.Fatal("error while registering commands: ", err)
 				return
 			}
 		}
 	}
 
-	if err = disgo.StartHTTPServer(); err != nil {
+	if err = client.StartHTTPServer(); err != nil {
 		logger.Fatal("error while starting http server: ", err)
 		return
 	}

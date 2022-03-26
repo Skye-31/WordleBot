@@ -7,9 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/snowflake"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/snowflake"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
@@ -67,14 +66,14 @@ type RenderReturnInfo struct {
 	Flags      discord.MessageFlags
 }
 
-func (g Game) Render(event *core.CreateInteraction) RenderReturnInfo {
+func (g Game) Render(event discord.BaseInteraction) RenderReturnInfo {
 	r := RenderReturnInfo{
 		Embeds: []discord.Embed{
 			discord.NewEmbedBuilder().
-				SetAuthor(event.User.Tag(), "", event.User.EffectiveAvatarURL(128)).
+				SetAuthor(event.User().Tag(), "", event.User().EffectiveAvatarURL(discord.WithSize(128))).
 				SetTitlef("Guess the word").
 				SetColor(0x54f27c).
-				SetImage("attachment://word-" + event.ID.String() + ".png").
+				SetImage("attachment://word-" + event.ID().String() + ".png").
 				Build(),
 		},
 		Components: []discord.ContainerComponent{
@@ -85,7 +84,7 @@ func (g Game) Render(event *core.CreateInteraction) RenderReturnInfo {
 		},
 		Flags: 0,
 	}
-	if event.GuildID != nil {
+	if event.GuildID() != nil {
 		r.Flags = discord.MessageFlagEphemeral
 	}
 	if g.IsOver() {

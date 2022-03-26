@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/DisgoOrg/log"
+	"github.com/disgoorg/log"
 )
 
 //go:embed data.json

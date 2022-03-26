@@ -1,6 +1,6 @@
 package models
 
-import "github.com/DisgoOrg/snowflake"
+import "github.com/disgoorg/snowflake"
 
 type User struct {
 	ID                snowflake.Snowflake `bun:"id,pk,nullzero"`

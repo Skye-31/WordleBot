@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/disgo/json"
+	"github.com/disgoorg/disgo/discord"
 )
+
+var four, eight = 4, 8
 
 var Definition = []discord.ApplicationCommandCreate{
 	discord.SlashCommandCreate{
-		Name:              "user",
+		CommandName:       "user",
 		Description:       "Edit your settings",
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
@@ -32,8 +33,8 @@ var Definition = []discord.ApplicationCommandCreate{
 								Name:        "default-word-size",
 								Description: "The default word size for your Wordle games",
 								Required:    false,
-								MinValue:    json.NewInt(4),
-								MaxValue:    json.NewInt(8),
+								MinValue:    &four,
+								MaxValue:    &eight,
 							},
 						},
 					},
@@ -68,7 +69,7 @@ var Definition = []discord.ApplicationCommandCreate{
 	//	},
 	//},
 	discord.SlashCommandCreate{
-		Name:              "stats",
+		CommandName:       "stats",
 		Description:       "View a user's stats",
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
@@ -79,7 +80,7 @@ var Definition = []discord.ApplicationCommandCreate{
 		},
 	},
 	discord.SlashCommandCreate{
-		Name:              "start",
+		CommandName:       "start",
 		Description:       "Start a wordle game",
 		DefaultPermission: true,
 		Options: []discord.ApplicationCommandOption{
@@ -91,13 +92,13 @@ var Definition = []discord.ApplicationCommandCreate{
 			discord.ApplicationCommandOptionInt{
 				Name:        "letters",
 				Description: "The number of letters to use in the wordle. (Default: 5)",
-				MinValue:    json.NewInt(4),
-				MaxValue:    json.NewInt(8),
+				MinValue:    &four,
+				MaxValue:    &eight,
 			},
 		},
 	},
 	discord.SlashCommandCreate{
-		Name:              "github",
+		CommandName:       "github",
 		Description:       "View the source code for this bot",
 		DefaultPermission: true,
 	},

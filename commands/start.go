@@ -6,18 +6,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/log"
 	"github.com/Skye-31/WordleBot/models"
 	"github.com/Skye-31/WordleBot/types"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/log"
 	"github.com/uptrace/bun"
 )
 
 var regex = regexp.MustCompile(`^[a-z]{4,8}$`)
 
 func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInteractionEvent) {
-	count, err := db.NewSelect().Model((*models.Game)(nil)).Where("id = ?", event.User.ID).Count(context.TODO())
+	count, err := db.NewSelect().Model((*models.Game)(nil)).Where("id = ?", event.User().ID).Count(context.TODO())
 	if err != nil {
 		_ = event.CreateMessage(discord.MessageCreate{Content: "Error fetching game information from database", Flags: 64})
 		return
@@ -35,21 +35,21 @@ func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInte
 		return
 	}
 	data := event.SlashCommandInteractionData()
-	guess := strings.ToLower(*data.Options.String("starting-word"))
+	guess := strings.ToLower(data.String("starting-word"))
 	if !regex.Match([]byte(guess)) {
 		_ = event.CreateMessage(discord.MessageCreate{Content: "Invalid starting word, please use a 4-8 character word", Flags: 64})
 		return
 	}
 	u := models.User{
-		ID:        event.User.ID,
-		CachedTag: event.User.Tag(),
+		ID:        event.User().ID,
+		CachedTag: event.User().Tag(),
 	}
 	if err := db.NewSelect().Model(&u).WherePK().Scan(context.TODO()); err != nil {
 		u.DefaultWordLength = 5
 	}
 	wordLength := int(u.DefaultWordLength)
-	if data.Options.IntOption("letters") != nil {
-		wordLength = *data.Options.Int("letters")
+	if data.Int("letters") != 0 {
+		wordLength = data.Int("letters")
 	}
 	if wordLength != len(guess) {
 		_ = event.CreateMessage(discord.MessageCreate{Content: "Your starting word does not match the length chosen (" + strconv.Itoa(wordLength) + ").", Flags: 64})
@@ -63,7 +63,7 @@ func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInte
 
 	word := words.GetRandom()
 	game := models.Game{
-		ID:      event.User.ID,
+		ID:      event.User().ID,
 		Word:    word,
 		Guesses: []string{guess},
 	}
@@ -73,13 +73,13 @@ func start(db *bun.DB, wd *types.WordsData, event *events.ApplicationCommandInte
 		return
 	}
 
-	r := game.Render(&event.CreateInteraction)
+	r := game.Render(event.BaseInteraction)
 	b, err := game.RenderImage(true)
 	if err != nil {
 		_ = event.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Error rendering image").SetFlags(64).Build())
 		return
 	}
-	attachment := discord.NewFile("word-"+event.ID.String()+".png", b)
+	attachment := discord.NewFile("word-"+event.ID().String()+".png", "Wordle Game", b)
 	if err := event.CreateMessage(discord.NewMessageCreateBuilder().
 		SetEmbeds(r.Embeds...).
 		SetContainerComponents(r.Components...).
